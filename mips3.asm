@@ -1,80 +1,104 @@
-.data
-    a:   .asciiz "Insert a: "
-    b:   .asciiz "Insert b: "
-    c:   .asciiz "Insert c: "
-    d:   .asciiz "Insert d: "
-    
-    string: .asciiz "F = "
-    sodu: .asciiz ", remainder "
-    
-.text
-.globl main
+.data 
+	array: .space 40
+	input: .asciiz "Please insert a element "
+	res: .asciiz "Second largest value is "
+	comma: .asciiz ","
+	idx: .asciiz ", found in index"
+	dot: .asciiz "."
 
-main: 
-	li $v0, 4
-	la $a0, a
-	syscall
-	li $v0, 5 #read integer
-	syscall
-	move $s0, $v0
+.text	
+.globl main
+main:
 	
+	la $s0, array		#base address = $s0
+	move $t0, $0
+	li $t3, 10
+Loop1:
+	beq $t0, $t3, Exit 
 	li $v0, 4
-	la $a0, b
-	syscall
+	la $a0, input
+	syscall 
 	li $v0, 5
 	syscall
-	move $s1, $v0
+	sll $t2, $t0, 2
+	add $s1, $s0, $t2
+	sw $v0, 0($s1)
+	addi $t0, $t0, 1
+	j Loop1
+Exit:
 	
-	li $v0, 4
-	la $a0, c
-	syscall
-	li $v0, 5
-	syscall
-	move $s2, $v0
+max1:
+	lw $s3, 0($s0) #s3 = array[0]
+	li $t1, 1	
+LoopMax:
+	beq $t1, 10, secondMax
+  	sll $t0, $t1, 2
+    	add $t2, $s0, $t0
+    	lw $t3, 0($t2) 	# $t3 = array[i] 	
 	
-	li $v0, 4
-	la $a0, d
-	syscall
-	li $v0, 5
-	syscall
-	move $s3, $v0
-	
-	addi $t0, $s0, 10
-	sub $t1, $s1, $s3
-	add $t2, $s0 ,$s0 #lấy cộng thay nhân
-	sub $t3, $s2, $t2
-	
-	mult $t0,$t1
-	mflo $t4
-	
-	mult $t4, $t3
-	mflo $t4
-	
-	#tim mau so
-	add $t5, $s0, $s1
-	add $t5, $s2, $t5
-	
-	div $t4, $t5
-	mflo $t6
-	mfhi $t7
-	
-	li $v0, 4
-	la $a0, string
-	syscall
-	
-	li $v0, 1
-	move $a0, $t6
-	syscall
-	
-	li $v0, 4
-	la $a0, sodu
-	syscall
-	
-	li $v0, 1
-	move $a0, $t7
-	syscall
-	
-	li $v0, 10
-	syscall
+	ble $t3, $s3, skip #array[i] < max
+	move $s3, $t3
+skip:
+	addi $t1, $t1, 1
+	j LoopMax
 	
 	
+secondMax:
+    li $t0, 0
+    li $s2, -2147483648 # second_max = INTMIN
+LoopMax2:
+    beq $t0, 10, print_result
+    sll $t1, $t0, 2
+    add $t2, $s0, $t1
+    lw $t3, 0($t2)
+    
+    bge $t3, $s3, skip_sec # nếu >= max
+    ble $t3, $s2, skip_sec # nếu <= second_max
+    move $s2, $t3          # Cập nhật second_max
+skip_sec:
+    addi $t0, $t0, 1
+    j LoopMax2
+
+#tìm Index
+print_result:
+    li $v0, 4
+    la $a0, res
+    syscall
+    li $v0, 1
+    move $a0, $s2       # In second_max
+    syscall
+    li $v0, 4
+    la $a0, idx
+    syscall
+
+    li $t0, 0           # i = 0
+    li $t4, 0           # flag (0: chưa in số nào)
+    
+print_index_loop:
+    beq $t0, 10, exit
+    sll $t1, $t0, 2
+    add $t2, $s0, $t1
+    lw $t3, 0($t2)
+    
+    bne $t3, $s2, skip_print # Nếu không bằng second_max thì bỏ qua
+    
+    beqz $t4, print_idx # Nếu là số đầu tiên được in, không in phẩy
+    li $v0, 4
+    la $a0, comma
+    syscall
+print_idx:
+    li $v0, 1
+    move $a0, $t0       # In index
+    syscall
+    li $t4, 1           # đã in 1 số (flag)
+    
+skip_print:
+    addi $t0, $t0, 1
+    j print_index_loop
+
+exit:
+    li $v0, 10
+    syscall
+	
+	
+
