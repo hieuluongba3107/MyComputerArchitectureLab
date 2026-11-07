@@ -2,7 +2,7 @@
     string:     .asciiz "Please enter your name: "
     hello:      .asciiz "Hello, "
     excl:       .asciiz "!"
-    name:       .space 64          # Cấp phát 64 bytes để chứa chuỗi tên
+    name:       .space 64          # Cấp phát 64 bytes 
 
 .text
 .globl main
