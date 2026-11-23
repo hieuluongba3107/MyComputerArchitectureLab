@@ -52,12 +52,11 @@ parse_loop:
     beq $t1, 13, replace_comma  # 12 : '\r'
     j parse_next
 replace_comma:
-    sb $zero, 0($t0)    # Ghi đè dấu phẩy bằng null
+    sb $zero, 0($t0)    # \0
 parse_next:
     addi $t0, $t0, 1
     j parse_loop
 parse_done:
-
     # Mở file để ghi
     li $v0, 13
     la $a0, fileout
@@ -66,7 +65,7 @@ parse_done:
     syscall
     move $s2, $v0       # $s2 = file descriptor (out)
 
-    # Xuất tiêu đề và các trường thông tin ra màn hình + ghi vào fileout
+    #print
     la $a0, title
     jal print_and_write
 
